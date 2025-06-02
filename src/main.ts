@@ -11,7 +11,7 @@ class Main {
   private windowHeight: number
   private centerX: number
   private centerY: number
-
+  private gameWindow: HTMLCanvasElement
   // game
   protected drawDistance: number
   private dt: number
@@ -35,14 +35,14 @@ class Main {
   private trackLength: number
   private baseIndex: number
 
-  constructor(width = 640, height = 360, p: p5) {
+  constructor(gameWindow: HTMLCanvasElement, width = 640, height = 360, p: p5) {
     this.p = p
     // screen values
     this.windowWidth = width
     this.windowHeight = height
     this.centerX = this.windowWidth / 2
     this.centerY = this.windowHeight / 2
-
+    this.gameWindow = gameWindow
     // game stuff
     this.dt = 0 // delta time in seconds
     this.drawDistance = 100
@@ -95,8 +95,9 @@ class Main {
       this.windowWidth,
       this.windowHeight,
       this.p.P2D,
-      document.querySelector("#main-canvas") ?? {}
+      this.gameWindow ?? {}
     )
+    this.p.angleMode(this.p.DEGREES)
   }
   // gameloop
   draw() {
@@ -106,6 +107,7 @@ class Main {
 
     // -- draw --
     this.p.background("skyblue")
+
     this.drawRoad()
   }
 
@@ -213,8 +215,21 @@ class Main {
 }
 
 const sketch = (p: p5) => {
-  const main = new Main(1280, 720, p)
-  main.init(50, 100)
+  const gamecanvas = document.querySelector("#main-canvas") as HTMLCanvasElement
+  if (!gamecanvas) {
+    throw new Error("Canvas element not found")
+  }
+  const aspectRatio = 16 / 9
+  const windowWidth = window.innerWidth
+  const windowHeight = window.innerHeight
+  let gameWidth = windowWidth
+  let gameHeight = windowWidth / aspectRatio
+  if (gameHeight > windowHeight) {
+    gameHeight = windowHeight
+    gameWidth = gameHeight * aspectRatio
+  }
+  const main = new Main(gamecanvas, gameWidth, gameHeight, p)
+  main.init(30, 100)
   p.setup = () => {
     main.setup()
   }
@@ -222,5 +237,4 @@ const sketch = (p: p5) => {
     main.draw()
   }
 }
-
 new p5(sketch)
